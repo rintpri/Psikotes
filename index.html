@@ -96,7 +96,7 @@
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         <div class="q-meta" id="qMeta"></div>
         <div class="q-text" id="qText"></div>
-        <div id="qImageContainer"></div> <!-- Container untuk Gambar SVG -->
+        <div id="qImageContainer"></div>
         <div class="options" id="qOptions"></div>
         <div class="nav-buttons">
           <button class="btn btn-secondary" id="btnPrev" onclick="prevQuestion()">← Sebelumnya</button>
@@ -150,11 +150,11 @@
 
 <script>
 /* ============================================================
-   KONFIGURASI — GANTI NILAI DI BAWAH INI
+   KONFIGURASI — GANTI NILAI DI BAWAH INI (SANGAT PENTING)
    ============================================================ */
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbx..../exec'; // ← URL Web App Anda
-const HRD_TOKEN = 'psikotes-rahasia-2025-xyz'; 
-const HRD_PIN = '123456'; 
+const GAS_URL = 'PASTE_URL_WEB_APP_ANDA_DI_SINI'; // Contoh: https://script.google.com/macros/s/AKfy.../exec
+const HRD_TOKEN = 'rahasia123'; // Harus sama dengan SECRET_TOKEN di backend
+const HRD_PIN = '123456'; // PIN Login Admin
 
 /* ============================================================
    DATA ASPEK & SOAL (9 ASPEK)
@@ -177,7 +177,6 @@ const LIKERT = [
   { value: 5, label: 'Sangat Setuju' }
 ];
 
-// SVG Gambar untuk Soal Visual (Bentuk, Pola, Kubus)
 const SVG_IMAGES = {
   pattern1: `
     <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
@@ -211,7 +210,7 @@ const SVG_IMAGES = {
 };
 
 const QUESTIONS = [
-  // --- 7 Aspek Likert Sebelumnya (28 Soal) ---
+  // --- Aspek Likert ---
   { aspect:'stress', text:'Saya tetap tenang dan fokus ketika menghadapi tenggat waktu yang mendesak.' },
   { aspect:'stress', text:'Tekanan pekerjaan yang tinggi justru membuat saya semakin termotivasi.' },
   { aspect:'stress', text:'Saya mudah panik ketika terjadi masalah yang tidak terduga dalam pekerjaan.' },
@@ -241,16 +240,14 @@ const QUESTIONS = [
   { aspect:'leadership', text:'Saya cenderung menunggu orang lain mengambil inisiatif terlebih dahulu.' },
   { aspect:'leadership', text:'Saya dapat memotivasi dan mengarahkan orang lain untuk mencapai tujuan.' },
 
-  // --- Aspek Visual (4 Soal Pilihan Ganda Gambar) ---
+  // --- Aspek Visual ---
   { 
     aspect: 'visual', 
     text: 'Perhatikan pola gambar berikut. Jika pola dilanjutkan, gambar apa yang tepat untuk mengisi tanda tanya?', 
     image: SVG_IMAGES.pattern1,
     options: [
-      { value: 5, label: 'Kotak Biru' }, 
-      { value: 1, label: 'Kotak Merah' }, 
-      { value: 3, label: 'Lingkaran Biru' }, 
-      { value: 2, label: 'Segitiga Merah' }
+      { value: 5, label: 'Kotak Biru' }, { value: 1, label: 'Kotak Merah' }, 
+      { value: 3, label: 'Lingkaran Biru' }, { value: 2, label: 'Segitiga Merah' }
     ]
   },
   { 
@@ -258,10 +255,8 @@ const QUESTIONS = [
     text: 'Gambar manakah yang merupakan hasil rotasi 90 derajat searah jarum jam dari bentuk di bawah ini?', 
     image: SVG_IMAGES.kubus1,
     options: [
-      { value: 5, label: 'Bentuk A' }, 
-      { value: 4, label: 'Bentuk B' }, 
-      { value: 2, label: 'Bentuk C' }, 
-      { value: 1, label: 'Bentuk D' }
+      { value: 5, label: 'Bentuk A' }, { value: 4, label: 'Bentuk B' }, 
+      { value: 2, label: 'Bentuk C' }, { value: 1, label: 'Bentuk D' }
     ]
   },
   { 
@@ -269,10 +264,8 @@ const QUESTIONS = [
     text: 'Lengkapi pola bentuk geometri berikut ini:', 
     image: SVG_IMAGES.pattern2,
     options: [
-      { value: 1, label: 'Persegi' }, 
-      { value: 5, label: 'Lingkaran' }, 
-      { value: 2, label: 'Segitiga' }, 
-      { value: 3, label: 'Bintang' }
+      { value: 1, label: 'Persegi' }, { value: 5, label: 'Lingkaran' }, 
+      { value: 2, label: 'Segitiga' }, { value: 3, label: 'Bintang' }
     ]
   },
   { 
@@ -280,57 +273,46 @@ const QUESTIONS = [
     text: 'Warna apakah yang paling tepat untuk melengkapi pola kotak di atas?', 
     image: SVG_IMAGES.pattern3,
     options: [
-      { value: 5, label: 'Kuning' }, 
-      { value: 1, label: 'Merah' }, 
-      { value: 2, label: 'Biru' }, 
-      { value: 4, label: 'Hijau' }
+      { value: 5, label: 'Kuning' }, { value: 1, label: 'Merah' }, 
+      { value: 2, label: 'Biru' }, { value: 4, label: 'Hijau' }
     ]
   },
 
-  // --- Aspek Numerik (4 Soal Matematika Sederhana) ---
+  // --- Aspek Numerik ---
   { 
     aspect: 'numerik', 
     text: 'Berapakah hasil dari 15 + 27 - 12?', 
     options: [
-      { value: 3, label: '25' }, 
-      { value: 5, label: '30' }, 
-      { value: 2, label: '28' }, 
-      { value: 1, label: '32' }
+      { value: 3, label: '25' }, { value: 5, label: '30' }, 
+      { value: 2, label: '28' }, { value: 1, label: '32' }
     ]
   },
   { 
     aspect: 'numerik', 
     text: 'Lanjutkan deret angka berikut: 2, 4, 8, 16, ...', 
     options: [
-      { value: 1, label: '20' }, 
-      { value: 5, label: '32' }, 
-      { value: 3, label: '24' }, 
-      { value: 2, label: '28' }
+      { value: 1, label: '20' }, { value: 5, label: '32' }, 
+      { value: 3, label: '24' }, { value: 2, label: '28' }
     ]
   },
   { 
     aspect: 'numerik', 
     text: 'Jika sebuah barang berharga Rp 150.000 dan mendapat diskon 20%, berapakah harga yang harus dibayar?', 
     options: [
-      { value: 2, label: 'Rp 130.000' }, 
-      { value: 1, label: 'Rp 140.000' }, 
-      { value: 5, label: 'Rp 120.000' }, 
-      { value: 3, label: 'Rp 100.000' }
+      { value: 2, label: 'Rp 130.000' }, { value: 1, label: 'Rp 140.000' }, 
+      { value: 5, label: 'Rp 120.000' }, { value: 3, label: 'Rp 100.000' }
     ]
   },
   { 
     aspect: 'numerik', 
     text: 'Sebuah pekerjaan dapat diselesaikan oleh 3 orang dalam waktu 6 hari. Jika dikerjakan oleh 2 orang, berapa hari waktu yang dibutuhkan?', 
     options: [
-      { value: 3, label: '8 hari' }, 
-      { value: 5, label: '9 hari' }, 
-      { value: 2, label: '10 hari' }, 
-      { value: 1, label: '12 hari' }
+      { value: 3, label: '8 hari' }, { value: 5, label: '9 hari' }, 
+      { value: 2, label: '10 hari' }, { value: 1, label: '12 hari' }
     ]
   }
 ];
 
-// Tandai soal likert yang "reverse"
 const REVERSE_FLAGS = QUESTIONS.map(q => 
   q.text.includes('mudah panik') || q.text.includes('sulit menghubungkan') || q.text.includes('bertahan pada satu cara') ||
   q.text.includes('cepat merasa puas') || q.text.includes('kurang penting') || q.text.includes('mudah tersinggung') ||
@@ -405,7 +387,6 @@ function renderQuestion() {
   document.getElementById('qMeta').textContent = 'Aspek: ' + ASPECTS[q.aspect].name;
   document.getElementById('qText').textContent = q.text;
 
-  // Render Gambar jika ada
   const imgContainer = document.getElementById('qImageContainer');
   if (q.image) {
     imgContainer.innerHTML = `<div class="q-image">${q.image}</div>`;
@@ -416,7 +397,6 @@ function renderQuestion() {
   const opts = document.getElementById('qOptions');
   opts.innerHTML = '';
   
-  // Tentukan opsi: jika soal visual/numerik punya array options sendiri, gunakan itu. Jika tidak, gunakan Likert.
   const currentOptions = q.options ? q.options : LIKERT;
 
   currentOptions.forEach(l => {
