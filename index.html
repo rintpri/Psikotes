@@ -34,11 +34,16 @@
   .progress-fill { height: 100%; background: linear-gradient(90deg, #2a5298, #4a90e2); width: 0%; transition: width .35s ease; }
   .q-meta { display: inline-block; background: #eef3fb; color: #1e3c72; padding: 4px 12px; border-radius: 20px; font-size: .78rem; font-weight: 600; margin-bottom: 14px; }
   .q-text { font-size: 1.1rem; font-weight: 600; line-height: 1.5; margin-bottom: 20px; color: #222; }
+  
+  /* Gambar SVG */
+  .q-image { text-align: center; margin-bottom: 20px; padding: 15px; background: #f8faff; border-radius: 10px; border: 1px dashed #c0d0e8; }
+  .q-image svg { max-width: 100%; height: auto; max-height: 180px; }
+
   .options { display: flex; flex-direction: column; gap: 10px; }
   .option { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border: 2px solid #dde3ec; border-radius: 10px; cursor: pointer; transition: all .15s; background: #fafbfd; }
   .option:hover { border-color: #4a90e2; background: #f0f6ff; }
   .option.selected { border-color: #2a5298; background: #eaf1fc; box-shadow: 0 0 0 3px rgba(42,82,152,.12); }
-  .option .radio { width: 20px; height: 20px; border: 2px solid #b8c4d9; border-radius: 50%; position: relative; }
+  .option .radio { width: 20px; height: 20px; border: 2px solid #b8c4d9; border-radius: 50%; position: relative; flex-shrink: 0; }
   .option.selected .radio { border-color: #2a5298; }
   .option.selected .radio::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #2a5298; }
   .nav-buttons { display: flex; justify-content: space-between; margin-top: 28px; gap: 12px; }
@@ -64,7 +69,7 @@
   <header>
     <div>
       <h1>🧠 Psikotes Kandidat Karyawan</h1>
-      <p>Penilaian 7 aspek psikologis</p>
+      <p>Penilaian 9 aspek psikologis</p>
     </div>
     <button id="btnLogout" class="btn btn-danger btn-sm hidden" onclick="logoutAdmin()">Logout Admin</button>
   </header>
@@ -79,7 +84,7 @@
     <div id="tab-test">
       
       <div id="identitySection">
-        <div class="info-note">ℹ️ Isi data diri terlebih dahulu. Tes terdiri dari <b id="totalQInfo"></b> pernyataan (±5 menit).</div>
+        <div class="info-note">ℹ️ Isi data diri terlebih dahulu. Tes terdiri dari <b id="totalQInfo"></b> pernyataan & soal (±8 menit).</div>
         <div class="form-group"><label>Nama Lengkap *</label><input type="text" id="inpName" placeholder="cth: Budi Santoso"></div>
         <div class="form-group"><label>Posisi yang Dilamar *</label><input type="text" id="inpPosition" placeholder="cth: Staff Administrasi"></div>
         <div class="form-group"><label>Email / No. HP</label><input type="text" id="inpContact" placeholder="cth: budi@email.com"></div>
@@ -91,6 +96,7 @@
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
         <div class="q-meta" id="qMeta"></div>
         <div class="q-text" id="qText"></div>
+        <div id="qImageContainer"></div> <!-- Container untuk Gambar SVG -->
         <div class="options" id="qOptions"></div>
         <div class="nav-buttons">
           <button class="btn btn-secondary" id="btnPrev" onclick="prevQuestion()">← Sebelumnya</button>
@@ -146,17 +152,12 @@
 /* ============================================================
    KONFIGURASI — GANTI NILAI DI BAWAH INI
    ============================================================ */
-// GANTI DENGAN URL WEB APP ANDA DARI LANGKAH 1
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbx..../exec'; 
-
-// Harus sama dengan SECRET_TOKEN di kode Apps Script
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbx..../exec'; // ← URL Web App Anda
 const HRD_TOKEN = 'psikotes-rahasia-2025-xyz'; 
-
-// PIN untuk Login Admin
 const HRD_PIN = '123456'; 
 
 /* ============================================================
-   DATA ASPEK & SOAL
+   DATA ASPEK & SOAL (9 ASPEK)
    ============================================================ */
 const ASPECTS = {
   stress:     { name: 'Toleransi terhadap Stres' },
@@ -165,14 +166,52 @@ const ASPECTS = {
   motivasi:   { name: 'Motivasi Berprestasi' },
   kerjasama:  { name: 'Kerjasama' },
   emosi:      { name: 'Stabilitas Emosi' },
-  leadership: { name: 'Kepemimpinan' }
+  leadership: { name: 'Kepemimpinan' },
+  visual:     { name: 'Penalaran Visual (Gambar)' },
+  numerik:    { name: 'Kemampuan Numerik' }
 };
+
 const LIKERT = [
   { value: 1, label: 'Sangat Tidak Setuju' }, { value: 2, label: 'Tidak Setuju' },
   { value: 3, label: 'Netral / Ragu' },       { value: 4, label: 'Setuju' },
   { value: 5, label: 'Sangat Setuju' }
 ];
+
+// SVG Gambar untuk Soal Visual (Bentuk, Pola, Kubus)
+const SVG_IMAGES = {
+  pattern1: `
+    <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="30" height="30" fill="#2a5298" />
+      <rect x="50" y="10" width="30" height="30" fill="#e74c3c" />
+      <rect x="90" y="10" width="30" height="30" fill="#2a5298" />
+      <rect x="130" y="10" width="30" height="30" fill="#e74c3c" />
+      <rect x="170" y="10" width="30" height="30" fill="#2a5298" />
+      <text x="10" y="70" font-family="Arial" font-size="14" fill="#333">Pola warna bergantian</text>
+    </svg>`,
+  kubus1: `
+    <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="50,20 120,20 150,50 80,50" fill="#3498db"/>
+      <polygon points="50,20 80,50 80,100 50,70" fill="#2980b9"/>
+      <polygon points="80,50 150,50 150,100 80,100" fill="#1abc9c"/>
+    </svg>`,
+  pattern2: `
+    <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="30" cy="30" r="15" fill="#2a5298" />
+      <rect x="60" y="15" width="30" height="30" fill="#2a5298" />
+      <polygon points="120,15 135,45 105,45" fill="#2a5298" />
+      <text x="160" y="40" font-family="Arial" font-size="20" fill="#2a5298">?</text>
+    </svg>`,
+  pattern3: `
+    <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="40" height="40" fill="#e74c3c" />
+      <rect x="70" y="10" width="40" height="40" fill="#f1c40f" />
+      <rect x="130" y="10" width="40" height="40" fill="#e74c3c" />
+      <text x="10" y="80" font-family="Arial" font-size="14" fill="#333">Warna apa selanjutnya?</text>
+    </svg>`
+};
+
 const QUESTIONS = [
+  // --- 7 Aspek Likert Sebelumnya (28 Soal) ---
   { aspect:'stress', text:'Saya tetap tenang dan fokus ketika menghadapi tenggat waktu yang mendesak.' },
   { aspect:'stress', text:'Tekanan pekerjaan yang tinggi justru membuat saya semakin termotivasi.' },
   { aspect:'stress', text:'Saya mudah panik ketika terjadi masalah yang tidak terduga dalam pekerjaan.' },
@@ -200,8 +239,98 @@ const QUESTIONS = [
   { aspect:'leadership', text:'Saya nyaman mengambil tanggung jawab dan memimpin kelompok.' },
   { aspect:'leadership', text:'Saya mampu mengambil keputusan tegas meskipun dalam situasi tidak pasti.' },
   { aspect:'leadership', text:'Saya cenderung menunggu orang lain mengambil inisiatif terlebih dahulu.' },
-  { aspect:'leadership', text:'Saya dapat memotivasi dan mengarahkan orang lain untuk mencapai tujuan.' }
+  { aspect:'leadership', text:'Saya dapat memotivasi dan mengarahkan orang lain untuk mencapai tujuan.' },
+
+  // --- Aspek Visual (4 Soal Pilihan Ganda Gambar) ---
+  { 
+    aspect: 'visual', 
+    text: 'Perhatikan pola gambar berikut. Jika pola dilanjutkan, gambar apa yang tepat untuk mengisi tanda tanya?', 
+    image: SVG_IMAGES.pattern1,
+    options: [
+      { value: 5, label: 'Kotak Biru' }, 
+      { value: 1, label: 'Kotak Merah' }, 
+      { value: 3, label: 'Lingkaran Biru' }, 
+      { value: 2, label: 'Segitiga Merah' }
+    ]
+  },
+  { 
+    aspect: 'visual', 
+    text: 'Gambar manakah yang merupakan hasil rotasi 90 derajat searah jarum jam dari bentuk di bawah ini?', 
+    image: SVG_IMAGES.kubus1,
+    options: [
+      { value: 5, label: 'Bentuk A' }, 
+      { value: 4, label: 'Bentuk B' }, 
+      { value: 2, label: 'Bentuk C' }, 
+      { value: 1, label: 'Bentuk D' }
+    ]
+  },
+  { 
+    aspect: 'visual', 
+    text: 'Lengkapi pola bentuk geometri berikut ini:', 
+    image: SVG_IMAGES.pattern2,
+    options: [
+      { value: 1, label: 'Persegi' }, 
+      { value: 5, label: 'Lingkaran' }, 
+      { value: 2, label: 'Segitiga' }, 
+      { value: 3, label: 'Bintang' }
+    ]
+  },
+  { 
+    aspect: 'visual', 
+    text: 'Warna apakah yang paling tepat untuk melengkapi pola kotak di atas?', 
+    image: SVG_IMAGES.pattern3,
+    options: [
+      { value: 5, label: 'Kuning' }, 
+      { value: 1, label: 'Merah' }, 
+      { value: 2, label: 'Biru' }, 
+      { value: 4, label: 'Hijau' }
+    ]
+  },
+
+  // --- Aspek Numerik (4 Soal Matematika Sederhana) ---
+  { 
+    aspect: 'numerik', 
+    text: 'Berapakah hasil dari 15 + 27 - 12?', 
+    options: [
+      { value: 3, label: '25' }, 
+      { value: 5, label: '30' }, 
+      { value: 2, label: '28' }, 
+      { value: 1, label: '32' }
+    ]
+  },
+  { 
+    aspect: 'numerik', 
+    text: 'Lanjutkan deret angka berikut: 2, 4, 8, 16, ...', 
+    options: [
+      { value: 1, label: '20' }, 
+      { value: 5, label: '32' }, 
+      { value: 3, label: '24' }, 
+      { value: 2, label: '28' }
+    ]
+  },
+  { 
+    aspect: 'numerik', 
+    text: 'Jika sebuah barang berharga Rp 150.000 dan mendapat diskon 20%, berapakah harga yang harus dibayar?', 
+    options: [
+      { value: 2, label: 'Rp 130.000' }, 
+      { value: 1, label: 'Rp 140.000' }, 
+      { value: 5, label: 'Rp 120.000' }, 
+      { value: 3, label: 'Rp 100.000' }
+    ]
+  },
+  { 
+    aspect: 'numerik', 
+    text: 'Sebuah pekerjaan dapat diselesaikan oleh 3 orang dalam waktu 6 hari. Jika dikerjakan oleh 2 orang, berapa hari waktu yang dibutuhkan?', 
+    options: [
+      { value: 3, label: '8 hari' }, 
+      { value: 5, label: '9 hari' }, 
+      { value: 2, label: '10 hari' }, 
+      { value: 1, label: '12 hari' }
+    ]
+  }
 ];
+
+// Tandai soal likert yang "reverse"
 const REVERSE_FLAGS = QUESTIONS.map(q => 
   q.text.includes('mudah panik') || q.text.includes('sulit menghubungkan') || q.text.includes('bertahan pada satu cara') ||
   q.text.includes('cepat merasa puas') || q.text.includes('kurang penting') || q.text.includes('mudah tersinggung') ||
@@ -276,9 +405,21 @@ function renderQuestion() {
   document.getElementById('qMeta').textContent = 'Aspek: ' + ASPECTS[q.aspect].name;
   document.getElementById('qText').textContent = q.text;
 
+  // Render Gambar jika ada
+  const imgContainer = document.getElementById('qImageContainer');
+  if (q.image) {
+    imgContainer.innerHTML = `<div class="q-image">${q.image}</div>`;
+  } else {
+    imgContainer.innerHTML = '';
+  }
+
   const opts = document.getElementById('qOptions');
   opts.innerHTML = '';
-  LIKERT.forEach(l => {
+  
+  // Tentukan opsi: jika soal visual/numerik punya array options sendiri, gunakan itu. Jika tidak, gunakan Likert.
+  const currentOptions = q.options ? q.options : LIKERT;
+
+  currentOptions.forEach(l => {
     const div = document.createElement('label');
     div.className = 'option' + (state.answers[i] === l.value ? ' selected' : '');
     div.innerHTML = `<span class="radio"></span><span>${l.label}</span>`;
@@ -306,7 +447,7 @@ function nextQuestion() {
 }
 function prevQuestion() { if (state.current > 0) { state.current--; renderQuestion(); } }
 
-/* ================== HITUNG & SUBMIT (TANPA MENAMPILKAN HASIL) ================== */
+/* ================== HITUNG & SUBMIT ================== */
 function finishTest() {
   if (state.answers.filter(a => a === null).length > 0 && !confirm('Masih ada soal belum dijawab. Yakin selesai?')) return;
 
@@ -316,6 +457,7 @@ function finishTest() {
     const val = REVERSE_FLAGS[idx] ? (6 - ans) : ans;
     raw[q.aspect].total += val; raw[q.aspect].count++;
   });
+  
   const aspectScores = {}; let totalOverall = 0;
   Object.keys(raw).forEach(k => {
     const score = Math.round(((raw[k].total / raw[k].count) - 1) / 4 * 100);
@@ -351,7 +493,7 @@ function resetForNewCandidate() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* ================== PANEL HRD (MENGGUNAKAN IFRAME) ================== */
+/* ================== PANEL HRD ================== */
 function loadHRD() {
   const iframe = document.getElementById('hrdIframe');
   iframe.src = `${GAS_URL}?token=${HRD_TOKEN}&t=${Date.now()}`;
