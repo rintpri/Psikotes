@@ -150,11 +150,11 @@
 
 <script>
 /* ============================================================
-   KONFIGURASI — GANTI NILAI DI BAWAH INI (SANGAT PENTING)
+   KONFIGURASI (URL ANDA SUDAH DIMASUKKAN DI SINI)
    ============================================================ */
-const GAS_URL = 'PASTE_URL_WEB_APP_ANDA_DI_SINI'; // Contoh: https://script.google.com/macros/s/AKfy.../exec
-const HRD_TOKEN = 'rahasia123'; // Harus sama dengan SECRET_TOKEN di backend
-const HRD_PIN = '123456'; // PIN Login Admin
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvDnTdsOLSZz1FY1iQtyP195sZIKlGfrsLjwqjxDD7yveTaTKyoYFQ8Od0DAQdczAxIQ/exec';
+const HRD_TOKEN = 'rahasia123'; // Harus sama dengan SECRET_TOKEN di Apps Script
+const HRD_PIN = '123456'; // PIN Login Admin (Silakan ganti jika perlu)
 
 /* ============================================================
    DATA ASPEK & SOAL (9 ASPEK)
@@ -241,76 +241,16 @@ const QUESTIONS = [
   { aspect:'leadership', text:'Saya dapat memotivasi dan mengarahkan orang lain untuk mencapai tujuan.' },
 
   // --- Aspek Visual ---
-  { 
-    aspect: 'visual', 
-    text: 'Perhatikan pola gambar berikut. Jika pola dilanjutkan, gambar apa yang tepat untuk mengisi tanda tanya?', 
-    image: SVG_IMAGES.pattern1,
-    options: [
-      { value: 5, label: 'Kotak Biru' }, { value: 1, label: 'Kotak Merah' }, 
-      { value: 3, label: 'Lingkaran Biru' }, { value: 2, label: 'Segitiga Merah' }
-    ]
-  },
-  { 
-    aspect: 'visual', 
-    text: 'Gambar manakah yang merupakan hasil rotasi 90 derajat searah jarum jam dari bentuk di bawah ini?', 
-    image: SVG_IMAGES.kubus1,
-    options: [
-      { value: 5, label: 'Bentuk A' }, { value: 4, label: 'Bentuk B' }, 
-      { value: 2, label: 'Bentuk C' }, { value: 1, label: 'Bentuk D' }
-    ]
-  },
-  { 
-    aspect: 'visual', 
-    text: 'Lengkapi pola bentuk geometri berikut ini:', 
-    image: SVG_IMAGES.pattern2,
-    options: [
-      { value: 1, label: 'Persegi' }, { value: 5, label: 'Lingkaran' }, 
-      { value: 2, label: 'Segitiga' }, { value: 3, label: 'Bintang' }
-    ]
-  },
-  { 
-    aspect: 'visual', 
-    text: 'Warna apakah yang paling tepat untuk melengkapi pola kotak di atas?', 
-    image: SVG_IMAGES.pattern3,
-    options: [
-      { value: 5, label: 'Kuning' }, { value: 1, label: 'Merah' }, 
-      { value: 2, label: 'Biru' }, { value: 4, label: 'Hijau' }
-    ]
-  },
+  { aspect: 'visual', text: 'Perhatikan pola gambar berikut. Jika pola dilanjutkan, gambar apa yang tepat untuk mengisi tanda tanya?', image: SVG_IMAGES.pattern1, options: [ { value: 5, label: 'Kotak Biru' }, { value: 1, label: 'Kotak Merah' }, { value: 3, label: 'Lingkaran Biru' }, { value: 2, label: 'Segitiga Merah' } ] },
+  { aspect: 'visual', text: 'Gambar manakah yang merupakan hasil rotasi 90 derajat searah jarum jam dari bentuk di bawah ini?', image: SVG_IMAGES.kubus1, options: [ { value: 5, label: 'Bentuk A' }, { value: 4, label: 'Bentuk B' }, { value: 2, label: 'Bentuk C' }, { value: 1, label: 'Bentuk D' } ] },
+  { aspect: 'visual', text: 'Lengkapi pola bentuk geometri berikut ini:', image: SVG_IMAGES.pattern2, options: [ { value: 1, label: 'Persegi' }, { value: 5, label: 'Lingkaran' }, { value: 2, label: 'Segitiga' }, { value: 3, label: 'Bintang' } ] },
+  { aspect: 'visual', text: 'Warna apakah yang paling tepat untuk melengkapi pola kotak di atas?', image: SVG_IMAGES.pattern3, options: [ { value: 5, label: 'Kuning' }, { value: 1, label: 'Merah' }, { value: 2, label: 'Biru' }, { value: 4, label: 'Hijau' } ] },
 
   // --- Aspek Numerik ---
-  { 
-    aspect: 'numerik', 
-    text: 'Berapakah hasil dari 15 + 27 - 12?', 
-    options: [
-      { value: 3, label: '25' }, { value: 5, label: '30' }, 
-      { value: 2, label: '28' }, { value: 1, label: '32' }
-    ]
-  },
-  { 
-    aspect: 'numerik', 
-    text: 'Lanjutkan deret angka berikut: 2, 4, 8, 16, ...', 
-    options: [
-      { value: 1, label: '20' }, { value: 5, label: '32' }, 
-      { value: 3, label: '24' }, { value: 2, label: '28' }
-    ]
-  },
-  { 
-    aspect: 'numerik', 
-    text: 'Jika sebuah barang berharga Rp 150.000 dan mendapat diskon 20%, berapakah harga yang harus dibayar?', 
-    options: [
-      { value: 2, label: 'Rp 130.000' }, { value: 1, label: 'Rp 140.000' }, 
-      { value: 5, label: 'Rp 120.000' }, { value: 3, label: 'Rp 100.000' }
-    ]
-  },
-  { 
-    aspect: 'numerik', 
-    text: 'Sebuah pekerjaan dapat diselesaikan oleh 3 orang dalam waktu 6 hari. Jika dikerjakan oleh 2 orang, berapa hari waktu yang dibutuhkan?', 
-    options: [
-      { value: 3, label: '8 hari' }, { value: 5, label: '9 hari' }, 
-      { value: 2, label: '10 hari' }, { value: 1, label: '12 hari' }
-    ]
-  }
+  { aspect: 'numerik', text: 'Berapakah hasil dari 15 + 27 - 12?', options: [ { value: 3, label: '25' }, { value: 5, label: '30' }, { value: 2, label: '28' }, { value: 1, label: '32' } ] },
+  { aspect: 'numerik', text: 'Lanjutkan deret angka berikut: 2, 4, 8, 16, ...', options: [ { value: 1, label: '20' }, { value: 5, label: '32' }, { value: 3, label: '24' }, { value: 2, label: '28' } ] },
+  { aspect: 'numerik', text: 'Jika sebuah barang berharga Rp 150.000 dan mendapat diskon 20%, berapakah harga yang harus dibayar?', options: [ { value: 2, label: 'Rp 130.000' }, { value: 1, label: 'Rp 140.000' }, { value: 5, label: 'Rp 120.000' }, { value: 3, label: 'Rp 100.000' } ] },
+  { aspect: 'numerik', text: 'Sebuah pekerjaan dapat diselesaikan oleh 3 orang dalam waktu 6 hari. Jika dikerjakan oleh 2 orang, berapa hari waktu yang dibutuhkan?', options: [ { value: 3, label: '8 hari' }, { value: 5, label: '9 hari' }, { value: 2, label: '10 hari' }, { value: 1, label: '12 hari' } ] }
 ];
 
 const REVERSE_FLAGS = QUESTIONS.map(q => 
