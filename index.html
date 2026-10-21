@@ -49,35 +49,14 @@
   .tab-btn.active { color: #1e3c72; border-bottom-color: #2a5298; }
   .info-note { background: #fff8e6; border-left: 4px solid #f39c12; padding: 12px 16px; border-radius: 8px; font-size: .85rem; margin-bottom: 20px; color: #7a5c00; }
 
-  /* Result & Detail */
-  .result-header { text-align: center; padding: 24px; border-radius: 14px; background: linear-gradient(135deg, #1e3c72, #2a5298); color: #fff; margin-bottom: 24px; }
-  .score-big { font-size: 3rem; font-weight: 800; margin: 8px 0 4px; }
-  .verdict { display: inline-block; padding: 8px 24px; border-radius: 30px; font-weight: 700; font-size: 1rem; margin-top: 8px; color: #fff; }
-  .aspect-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-  .aspect-card { border: 1px solid #e3e9f2; border-radius: 12px; padding: 16px; background: #fafbfd; }
-  .aspect-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .aspect-name { font-weight: 700; font-size: .92rem; color: #1e3c72; }
-  .aspect-score { font-weight: 800; font-size: 1rem; }
-  .aspect-bar { height: 8px; background: #e8ecf3; border-radius: 5px; overflow: hidden; margin-bottom: 6px; }
-  .aspect-bar-fill { height: 100%; border-radius: 5px; }
-  .cat-high { color: #1e8e4e; } .cat-mid { color: #d68910; } .cat-low { color: #c0392b; }
-  .bar-high { background: linear-gradient(90deg,#1e8e4e,#27ae60); }
-  .bar-mid { background: linear-gradient(90deg,#d68910,#f39c12); }
-  .bar-low { background: linear-gradient(90deg,#c0392b,#e74c3c); }
-  
   /* Iframe Container */
-  .iframe-container { width: 100%; height: 500px; border: 1px solid #e3e9f2; border-radius: 12px; overflow: hidden; background: #fff; }
-
-  /* CSS Print */
-  @media print {
-    body { background: #fff; padding: 0; }
-    .container { box-shadow: none; max-width: 100%; }
-    header, .tab-bar, .action-row, .btn, .nav-buttons, .hrd-toolbar { display: none !important; }
-    .content { padding: 0; }
-    .result-header { background: #fff !important; color: #000 !important; border-bottom: 2px solid #000; border-radius: 0; }
-    .score-big, .verdict { color: #000 !important; }
-    .aspect-card { break-inside: avoid; border: 1px solid #ccc; }
-  }
+  .iframe-container { width: 100%; height: 550px; border: 1px solid #e3e9f2; border-radius: 12px; overflow: hidden; background: #fff; }
+  
+  /* Halaman Sukses Kandidat */
+  .success-box { text-align: center; padding: 40px 20px; }
+  .success-box .icon { font-size: 4rem; margin-bottom: 16px; }
+  .success-box h2 { color: #1e3c72; margin-bottom: 12px; }
+  .success-box p { color: #666; margin-bottom: 24px; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -85,7 +64,7 @@
   <header>
     <div>
       <h1>🧠 Psikotes Kandidat Karyawan</h1>
-      <p>Penilaian 7 aspek psikologis — hasil langsung tersimpan ke Spreadsheet HRD</p>
+      <p>Penilaian 7 aspek psikologis</p>
     </div>
     <button id="btnLogout" class="btn btn-danger btn-sm hidden" onclick="logoutAdmin()">Logout Admin</button>
   </header>
@@ -96,8 +75,10 @@
   </div>
 
   <div class="content">
-    <!-- ================= TAB TES ================= -->
+    <!-- ================= TAB TES KANDIDAT ================= -->
     <div id="tab-test">
+      
+      <!-- 1. Form Identitas -->
       <div id="identitySection">
         <div class="info-note">ℹ️ Isi data diri terlebih dahulu. Tes terdiri dari <b id="totalQInfo"></b> pernyataan (±5 menit).</div>
         <div class="form-group"><label>Nama Lengkap *</label><input type="text" id="inpName" placeholder="cth: Budi Santoso"></div>
@@ -106,6 +87,7 @@
         <button class="btn btn-primary" onclick="startTest()">Mulai Tes →</button>
       </div>
 
+      <!-- 2. Pengerjaan Soal -->
       <div id="testSection" class="hidden">
         <div class="progress-info"><span id="progressLabel">Soal 1</span><span id="progressPercent">0%</span></div>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
@@ -118,11 +100,21 @@
         </div>
       </div>
 
-      <div id="resultSection" class="hidden"></div>
+      <!-- 3. Halaman Selesai (Kandidat tidak melihat nilai) -->
+      <div id="successSection" class="hidden">
+        <div class="success-box">
+          <div class="icon">✅</div>
+          <h2>Tes Berhasil Diselesaikan!</h2>
+          <p>Terima kasih, <b id="lblCandidateName"></b>.<br>Jawaban Anda telah berhasil direkam dan dikirim ke sistem HRD.<br>Silakan menunggu informasi selanjutnya dari tim rekrutmen.</p>
+          <button class="btn btn-primary" onclick="resetForNewCandidate()">Kembali ke Halaman Utama</button>
+        </div>
+      </div>
+
     </div>
 
-    <!-- ================= TAB HRD ================= -->
+    <!-- ================= TAB PANEL HRD ================= -->
     <div id="tab-hrd" class="hidden">
+      
       <!-- Login Section -->
       <div id="adminLoginSection">
         <div style="max-width: 400px; margin: 40px auto; text-align: center;">
@@ -139,20 +131,20 @@
 
       <!-- Panel Content (Hidden by default) -->
       <div id="adminPanelSection" class="hidden">
-        <div class="info-note">🔒 Anda login sebagai Admin HRD. Data ditarik secara aman dari server.</div>
+        <div class="info-note">🔒 Anda login sebagai Admin HRD. Data ditarik secara aman dari Spreadsheet.</div>
         <div class="hrd-toolbar" style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
           <button class="btn btn-secondary btn-sm" onclick="loadHRD()">🔄 Refresh Data</button>
         </div>
         
-        <!-- IFRAME UNTUK MENAMPILKAN TABEL DARI APPS SCRIPT (BEBAS CORS) -->
+        <!-- IFRAME UNTUK MENAMPILKAN TABEL (BEBAS CORS) -->
         <div class="iframe-container">
           <iframe id="hrdIframe" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>
         
-        <div id="detailBox" style="margin-top:24px;"></div>
       </div>
     </div>
   </div>
+  
   <footer style="text-align:center; padding:16px; font-size:.8rem; color:#8b97ab; border-top:1px solid #eef1f6;">© 2025 Sistem Psikotes Kandidat</footer>
 </div>
 
@@ -162,19 +154,19 @@
    ============================================================ */
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbx..../exec'; // ← URL Web App Anda
 const HRD_TOKEN = 'psikotes-rahasia-2025-xyz'; // ← Harus sama dengan SECRET_TOKEN di backend
-const HRD_PIN = '123456'; // ← PIN untuk Login Admin (Ganti sesuai keinginan)
+const HRD_PIN = '123456'; // ← PIN untuk Login Admin
 
 /* ============================================================
    DATA ASPEK & SOAL
    ============================================================ */
 const ASPECTS = {
-  stress:     { name: 'Toleransi terhadap Stres', desc: 'Tetap tenang & produktif di bawah tekanan' },
-  analisa:    { name: 'Daya Analisa & Sintesa',   desc: 'Mengurai masalah dan menyusun solusi' },
-  fleksibel:  { name: 'Fleksibilitas Berpikir',   desc: 'Beradaptasi & melihat dari banyak sudut' },
-  motivasi:   { name: 'Motivasi Berprestasi',     desc: 'Dorongan untuk unggul & mencapai target' },
-  kerjasama:  { name: 'Kerjasama',                desc: 'Berkolaborasi & membangun relasi kerja' },
-  emosi:      { name: 'Stabilitas Emosi',         desc: 'Kestabilan suasana hati & kendali diri' },
-  leadership: { name: 'Kepemimpinan',             desc: 'Memimpin, mengambil keputusan & memengaruhi' }
+  stress:     { name: 'Toleransi terhadap Stres' },
+  analisa:    { name: 'Daya Analisa & Sintesa' },
+  fleksibel:  { name: 'Fleksibilitas Berpikir' },
+  motivasi:   { name: 'Motivasi Berprestasi' },
+  kerjasama:  { name: 'Kerjasama' },
+  emosi:      { name: 'Stabilitas Emosi' },
+  leadership: { name: 'Kepemimpinan' }
 };
 const LIKERT = [
   { value: 1, label: 'Sangat Tidak Setuju' }, { value: 2, label: 'Tidak Setuju' },
@@ -218,7 +210,6 @@ const REVERSE_FLAGS = QUESTIONS.map(q =>
 );
 
 let state = { candidate: null, answers: [], current: 0, startedAt: 0 };
-let currentHRDData = [];
 
 /* ================== NAVIGASI TAB ================== */
 function switchTab(tab) {
@@ -277,7 +268,7 @@ function startTest() {
 
   document.getElementById('identitySection').classList.add('hidden');
   document.getElementById('testSection').classList.remove('hidden');
-  document.getElementById('resultSection').classList.add('hidden');
+  document.getElementById('successSection').classList.add('hidden');
   renderQuestion();
 }
 
@@ -316,7 +307,7 @@ function nextQuestion() {
 }
 function prevQuestion() { if (state.current > 0) { state.current--; renderQuestion(); } }
 
-/* ================== HITUNG & SUBMIT ================== */
+/* ================== HITUNG & SUBMIT (TANPA MENAMPILKAN HASIL) ================== */
 function finishTest() {
   if (state.answers.filter(a => a === null).length > 0 && !confirm('Masih ada soal belum dijawab. Yakin selesai?')) return;
 
@@ -332,124 +323,43 @@ function finishTest() {
     aspectScores[k] = score; totalOverall += score;
   });
   const overall = Math.round(totalOverall / Object.keys(ASPECTS).length);
-  const cat = getCategory(overall);
-  const verdict = getVerdict(overall);
+  
+  // Kategori & Rekomendasi
+  let category = 'Rendah', verdict = 'BELUM DIREKOMENDASIKAN';
+  if (overall >= 75) { category = 'Tinggi'; verdict = 'SANGAT DIREKOMENDASIKAN'; }
+  else if (overall >= 60) { category = 'Cukup'; verdict = 'DIREKOMENDASIKAN'; }
+  else if (overall >= 45) { category = 'Cukup'; verdict = 'PERTIMBANGKAN'; }
+
   const duration = Math.round((Date.now() - state.startedAt) / 1000);
+  const payload = { candidate: state.candidate, aspectScores, overall, category, verdict, duration };
 
-  const payload = { candidate: state.candidate, aspectScores, overall, category: cat.label, verdict: verdict.text, duration };
+  // Sembunyikan soal, tampilkan halaman sukses
+  document.getElementById('testSection').classList.add('hidden');
+  document.getElementById('successSection').classList.remove('hidden');
+  document.getElementById('lblCandidateName').textContent = state.candidate.name;
 
-  // 1. TAMPILKAN HASIL DULU (Agar kandidat langsung lihat)
-  showResult(payload);
-
-  // 2. KIRIM KE SPREADSHEET DI BACKGROUND (TANPA MENGHALANGI UI)
+  // Kirim data ke Google Spreadsheet via POST
   fetch(GAS_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
     body: JSON.stringify(payload)
-  }).then(() => {
-    document.getElementById('saveStatus').innerHTML = '<span style="color:#1e8e4e;font-weight:700;">✅ Hasil berhasil dikirim ke Spreadsheet.</span>';
-  }).catch(err => {
-    document.getElementById('saveStatus').innerHTML = '<span style="color:#c0392b;">⚠️ Gagal kirim ke server. Hasil tampil di layar.</span>';
-  });
-}
-
-function getCategory(score) {
-  if (score >= 70) return { label:'Tinggi', cls:'cat-high', bar:'bar-high', badge:'badge-high' };
-  if (score >= 45) return { label:'Cukup',  cls:'cat-mid',  bar:'bar-mid',  badge:'badge-mid' };
-  return { label:'Rendah', cls:'cat-low', bar:'bar-low', badge:'badge-low' };
-}
-function getVerdict(overall) {
-  if (overall >= 75) return { text:'SANGAT DIREKOMENDASIKAN', color:'#1e8e4e' };
-  if (overall >= 60) return { text:'DIREKOMENDASIKAN', color:'#27ae60' };
-  if (overall >= 45) return { text:'PERTIMBANGKAN', color:'#d68910' };
-  return { text:'BELUM DIREKOMENDASIKAN', color:'#c0392b' };
-}
-
-function showResult(result) {
-  document.getElementById('testSection').classList.add('hidden');
-  const sec = document.getElementById('resultSection');
-  sec.classList.remove('hidden');
-  sec.innerHTML = buildResultHTML(result, true);
+  }).catch(err => console.log('Gagal mengirim ke server:', err));
 }
 
 function resetForNewCandidate() {
   ['inpName','inpPosition','inpContact'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('identitySection').classList.remove('hidden');
-  document.getElementById('resultSection').classList.add('hidden');
+  document.getElementById('successSection').classList.add('hidden');
   state = { candidate: null, answers: [], current: 0, startedAt: 0 };
   switchTab('test');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 /* ================== PANEL HRD (MENGGUNAKAN IFRAME) ================== */
 function loadHRD() {
   const iframe = document.getElementById('hrdIframe');
-  // Memuat URL dengan token. Iframe akan merender HTML tabel dari Google Apps Script.
+  // Memuat HTML Tabel langsung dari Google Apps Script ke dalam Iframe
   iframe.src = `${GAS_URL}?token=${HRD_TOKEN}&t=${Date.now()}`;
-  document.getElementById('detailBox').innerHTML = '';
-}
-
-// Fungsi ini dipanggil OLEH IFRAME (Backend) saat tombol "Detail" di tabel diklik
-window.showDetailFromIframe = function(idx) {
-  // Kita tidak lagi punya data JSON di frontend, jadi kita tidak bisa merender detail via JS.
-  // Solusi: Arahkan HRD untuk melihat detail di Spreadsheet, ATAU kita bisa menambahkan fitur kompleks.
-  // Namun, karena kita fokus pada perbaikan CORS, detail di panel akan kita buat sederhana dengan alert.
-  alert("Untuk melihat detail lengkap, silakan buka file Google Spreadsheet Anda, atau buat tes baru untuk melihat rincian di layar hasil.");
-};
-
-/* ================== TEMPLATE CETAK / HASIL ================== */
-function buildResultHTML(result, isCandidateView) {
-  const v = getVerdict(result.overall);
-  const cat = getCategory(result.overall);
-  const dateStr = new Date().toLocaleDateString('id-ID', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' });
-  
-  let aspectHTML = '';
-  Object.keys(ASPECTS).forEach(k => {
-    const score = result.aspectScores[k];
-    const c = getCategory(score);
-    aspectHTML += `
-      <div class="aspect-card">
-        <div class="aspect-top">
-          <span class="aspect-name">${ASPECTS[k].name}</span>
-          <span class="aspect-score ${c.cls}">${score}</span>
-        </div>
-        <div class="aspect-bar"><div class="aspect-bar-fill ${c.bar}" style="width:${score}%"></div></div>
-        <div style="font-size: .8rem; color: #666; margin-top: 4px;"><b class="${c.cls}">${c.label}</b></div>
-      </div>`;
-  });
-
-  const printBtn = !isCandidateView ? `<button class="btn btn-secondary" style="margin-top: 20px;" onclick="window.print()">🖨️ Cetak Laporan (PDF)</button>` : '';
-  const actionRow = isCandidateView ? `
-    <div class="action-row" style="display:flex; gap:12px; margin-top:20px;">
-      <button class="btn btn-primary" onclick="resetForNewCandidate()">🔄 Tes Kandidat Baru</button>
-      <button class="btn btn-secondary" onclick="switchTab('hrd')">👔 Panel HRD</button>
-    </div>` : '';
-
-  return `
-    <div class="result-header">
-      <div style="font-size:.9rem;opacity:.85;">Hasil Tes Psikologi Kandidat</div>
-      <h2>${escapeHtml(result.candidate.name)}</h2>
-      <div style="font-size:.9rem;opacity:.85;">Posisi: ${escapeHtml(result.candidate.position)} | Kontak: ${escapeHtml(result.candidate.contact || '-')}</div>
-      <div style="font-size:.85rem;opacity:.85;margin-top:10px;">Tanggal Tes: ${dateStr}</div>
-      <div class="score-big">${result.overall}</div>
-      <div style="font-size:.85rem;opacity:.85;">Skor Keseluruhan (0–100)</div>
-      <div class="verdict" style="background:${v.color};">${v.text}</div>
-    </div>
-    
-    <div class="summary-box" style="padding: 18px; border-radius: 12px; background: #f4f8ff; border-left: 5px solid #2a5298; margin-bottom: 20px; font-size: .92rem; line-height: 1.6;">
-      <b>Ringkasan:</b> Berdasarkan jawaban, kandidat memperoleh skor keseluruhan <b>${result.overall}</b> dengan kategori <b>${cat.label}</b>. Rekomendasi: <b>${v.text}</b>.
-    </div>
-
-    ${isCandidateView ? `<div id="saveStatus" style="margin-bottom:20px;padding:12px 16px;border-radius:10px;background:#f4f8ff;font-size:.9rem;">⏳ Mengirim hasil ke Spreadsheet...</div>` : ''}
-
-    <h3 style="margin-bottom:14px;color:#1e3c72;font-size:1.1rem;">📊 Rincian 7 Aspek Penilaian</h3>
-    <div class="aspect-grid">${aspectHTML}</div>
-    ${printBtn}
-    ${actionRow}
-  `;
-}
-
-function escapeHtml(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 </script>
 </body>
