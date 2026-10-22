@@ -7,7 +7,7 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); min-height: 100vh; color: #333; padding: 20px; }
-  .container { max-width: 950px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+  .container { max-width: 1100px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
   header { background: linear-gradient(135deg, #1e3c72, #2a5298); color: #fff; padding: 28px 32px; display: flex; justify-content: space-between; align-items: center; }
   header h1 { font-size: 1.5rem; margin-bottom: 6px; }
   header p { opacity: 0.85; font-size: 0.95rem; }
@@ -55,7 +55,7 @@
   .info-note { background: #fff8e6; border-left: 4px solid #f39c12; padding: 12px 16px; border-radius: 8px; font-size: .85rem; margin-bottom: 20px; color: #7a5c00; }
 
   /* Iframe Container */
-  .iframe-container { width: 100%; height: 550px; border: 1px solid #e3e9f2; border-radius: 12px; overflow: hidden; background: #fff; }
+  .iframe-container { width: 100%; height: 600px; border: 1px solid #e3e9f2; border-radius: 12px; overflow: hidden; background: #fff; }
   
   /* Halaman Sukses Kandidat */
   .success-box { text-align: center; padding: 40px 20px; }
@@ -84,7 +84,7 @@
     <div id="tab-test">
       
       <div id="identitySection">
-        <div class="info-note">ℹ️ Isi data diri terlebih dahulu. Tes terdiri dari <b id="totalQInfo"></b> pernyataan & soal (±8 menit).</div>
+        <div class="info-note">ℹ️ Isi data diri terlebih dahulu. Tes terdiri dari <b id="totalQInfo"></b> pernyataan & soal (±10 menit).</div>
         <div class="form-group"><label>Nama Lengkap *</label><input type="text" id="inpName" placeholder="cth: Budi Santoso"></div>
         <div class="form-group"><label>Posisi yang Dilamar *</label><input type="text" id="inpPosition" placeholder="cth: Staff Administrasi"></div>
         <div class="form-group"><label>Email / No. HP</label><input type="text" id="inpContact" placeholder="cth: budi@email.com"></div>
@@ -132,7 +132,7 @@
       </div>
 
       <div id="adminPanelSection" class="hidden">
-        <div class="info-note">🔒 Anda login sebagai Admin HRD. Data ditarik secara aman dari Spreadsheet.</div>
+        <div class="info-note">🔒 Anda login sebagai Admin HRD. Tabel di bawah menampilkan skor persentase dari 9 aspek.</div>
         <div class="hrd-toolbar" style="display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;">
           <button class="btn btn-secondary btn-sm" onclick="loadHRD()">🔄 Refresh Data</button>
         </div>
@@ -150,14 +150,14 @@
 
 <script>
 /* ============================================================
-   KONFIGURASI (URL ANDA SUDAH DIMASUKKAN DI SINI)
+   KONFIGURASI 
    ============================================================ */
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvDnTdsOLSZz1FY1iQtyP195sZIKlGfrsLjwqjxDD7yveTaTKyoYFQ8Od0DAQdczAxIQ/exec';
-const HRD_TOKEN = 'rahasia123'; // Harus sama dengan SECRET_TOKEN di Apps Script
-const HRD_PIN = '123456'; // PIN Login Admin (Silakan ganti jika perlu)
+const HRD_TOKEN = 'rahasia123'; 
+const HRD_PIN = '123456'; 
 
 /* ============================================================
-   DATA ASPEK & SOAL (9 ASPEK)
+   DATA ASPEK & SOAL (9 ASPEK - 41 SOAL)
    ============================================================ */
 const ASPECTS = {
   stress:     { name: 'Toleransi terhadap Stres' },
@@ -178,79 +178,67 @@ const LIKERT = [
 ];
 
 const SVG_IMAGES = {
-  pattern1: `
-    <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-      <rect x="10" y="10" width="30" height="30" fill="#2a5298" />
-      <rect x="50" y="10" width="30" height="30" fill="#e74c3c" />
-      <rect x="90" y="10" width="30" height="30" fill="#2a5298" />
-      <rect x="130" y="10" width="30" height="30" fill="#e74c3c" />
-      <rect x="170" y="10" width="30" height="30" fill="#2a5298" />
-      <text x="10" y="70" font-family="Arial" font-size="14" fill="#333">Pola warna bergantian</text>
-    </svg>`,
-  kubus1: `
-    <svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="50,20 120,20 150,50 80,50" fill="#3498db"/>
-      <polygon points="50,20 80,50 80,100 50,70" fill="#2980b9"/>
-      <polygon points="80,50 150,50 150,100 80,100" fill="#1abc9c"/>
-    </svg>`,
-  pattern2: `
-    <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="30" cy="30" r="15" fill="#2a5298" />
-      <rect x="60" y="15" width="30" height="30" fill="#2a5298" />
-      <polygon points="120,15 135,45 105,45" fill="#2a5298" />
-      <text x="160" y="40" font-family="Arial" font-size="20" fill="#2a5298">?</text>
-    </svg>`,
-  pattern3: `
-    <svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg">
-      <rect x="10" y="10" width="40" height="40" fill="#e74c3c" />
-      <rect x="70" y="10" width="40" height="40" fill="#f1c40f" />
-      <rect x="130" y="10" width="40" height="40" fill="#e74c3c" />
-      <text x="10" y="80" font-family="Arial" font-size="14" fill="#333">Warna apa selanjutnya?</text>
-    </svg>`
+  pattern1: `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="30" height="30" fill="#2a5298" /><rect x="50" y="10" width="30" height="30" fill="#e74c3c" /><rect x="90" y="10" width="30" height="30" fill="#2a5298" /><rect x="130" y="10" width="30" height="30" fill="#e74c3c" /><rect x="170" y="10" width="30" height="30" fill="#2a5298" /><text x="10" y="70" font-family="Arial" font-size="14" fill="#333">Pola warna bergantian</text></svg>`,
+  kubus1: `<svg viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg"><polygon points="50,20 120,20 150,50 80,50" fill="#3498db"/><polygon points="50,20 80,50 80,100 50,70" fill="#2980b9"/><polygon points="80,50 150,50 150,100 80,100" fill="#1abc9c"/></svg>`,
+  pattern2: `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="15" fill="#2a5298" /><rect x="60" y="15" width="30" height="30" fill="#2a5298" /><polygon points="120,15 135,45 105,45" fill="#2a5298" /><text x="160" y="40" font-family="Arial" font-size="20" fill="#2a5298">?</text></svg>`,
+  pattern3: `<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="10" width="40" height="40" fill="#e74c3c" /><rect x="70" y="10" width="40" height="40" fill="#f1c40f" /><rect x="130" y="10" width="40" height="40" fill="#e74c3c" /><text x="10" y="80" font-family="Arial" font-size="14" fill="#333">Warna apa selanjutnya?</text></svg>`
 };
 
 const QUESTIONS = [
-  // --- Aspek Likert ---
+  // --- ASPEK STRES (4 Soal) ---
   { aspect:'stress', text:'Saya tetap tenang dan fokus ketika menghadapi tenggat waktu yang mendesak.' },
   { aspect:'stress', text:'Tekanan pekerjaan yang tinggi justru membuat saya semakin termotivasi.' },
-  { aspect:'stress', text:'Saya mudah panik ketika terjadi masalah yang tidak terduga dalam pekerjaan.' },
+  { aspect:'stress', text:'Saya mudah panik ketika terjadi masalah yang tidak terduga dalam pekerjaan.' }, // Reverse
   { aspect:'stress', text:'Saya mampu mengendalikan emosi saat menghadapi rekan kerja yang sulit.' },
+
+  // --- ASPEK ANALISA (4 Soal) ---
   { aspect:'analisa', text:'Saya terbiasa memecah masalah kompleks menjadi bagian yang lebih sederhana.' },
   { aspect:'analisa', text:'Saya dapat dengan cepat menemukan akar penyebab suatu permasalahan.' },
-  { aspect:'analisa', text:'Saya sulit menghubungkan informasi dari berbagai sumber untuk menarik kesimpulan.' },
+  { aspect:'analisa', text:'Saya sulit menghubungkan informasi dari berbagai sumber untuk menarik kesimpulan.' }, // Reverse
   { aspect:'analisa', text:'Saya menyukai pekerjaan yang menuntut penalaran logis dan data.' },
+
+  // --- ASPEK FLEKSIBEL (4 Soal) ---
   { aspect:'fleksibel', text:'Saya mudah menyesuaikan diri ketika cara kerja berubah secara mendadak.' },
   { aspect:'fleksibel', text:'Saya terbuka terhadap ide atau sudut pandang yang berbeda dari keyakinan saya.' },
-  { aspect:'fleksibel', text:'Saya cenderung bertahan pada satu cara kerja meskipun ada cara yang lebih efektif.' },
+  { aspect:'fleksibel', text:'Saya cenderung bertahan pada satu cara kerja meskipun ada cara yang lebih efektif.' }, // Reverse
   { aspect:'fleksibel', text:'Saya senang mencoba pendekatan baru ketika metode lama tidak lagi berhasil.' },
+
+  // --- ASPEK MOTIVASI (4 Soal) ---
   { aspect:'motivasi', text:'Saya menetapkan target kerja yang tinggi untuk diri saya sendiri.' },
   { aspect:'motivasi', text:'Saya merasa puas ketika berhasil mengungguli standar yang ditetapkan.' },
-  { aspect:'motivasi', text:'Saya cepat merasa puas dengan hasil kerja yang sekadar "cukup baik".' },
+  { aspect:'motivasi', text:'Saya cepat merasa puas dengan hasil kerja yang sekadar "cukup baik".' }, // Reverse
   { aspect:'motivasi', text:'Saya aktif mencari peluang untuk mengembangkan keterampilan baru.' },
+
+  // --- ASPEK KERJASAMA (4 Soal) ---
   { aspect:'kerjasama', text:'Saya lebih suka bekerja dalam tim dibandingkan bekerja sendiri.' },
   { aspect:'kerjasama', text:'Saya bersedia membantu rekan kerja yang sedang kesulitan tanpa diminta.' },
-  { aspect:'kerjasama', text:'Saya menganggap pendapat rekan tim kurang penting dibandingkan pendapat saya.' },
+  { aspect:'kerjasama', text:'Saya menganggap pendapat rekan tim kurang penting dibandingkan pendapat saya.' }, // Reverse
   { aspect:'kerjasama', text:'Saya mampu berkompromi demi tercapainya tujuan bersama.' },
+
+  // --- ASPEK EMOSI (4 Soal) ---
   { aspect:'emosi', text:'Suasana hati saya cenderung stabil dari hari ke hari.' },
-  { aspect:'emosi', text:'Saya mudah tersinggung ketika menerima kritik dari orang lain.' },
+  { aspect:'emosi', text:'Saya mudah tersinggung ketika menerima kritik dari orang lain.' }, // Reverse
   { aspect:'emosi', text:'Saya dapat menahan diri untuk tidak bereaksi berlebihan saat marah.' },
-  { aspect:'emosi', text:'Saya sering merasa cemas berlebihan tanpa alasan yang jelas.' },
+  { aspect:'emosi', text:'Saya sering merasa cemas berlebihan tanpa alasan yang jelas.' }, // Reverse
+
+  // --- ASPEK KEPEMIMPINAN (4 Soal) ---
   { aspect:'leadership', text:'Saya nyaman mengambil tanggung jawab dan memimpin kelompok.' },
   { aspect:'leadership', text:'Saya mampu mengambil keputusan tegas meskipun dalam situasi tidak pasti.' },
-  { aspect:'leadership', text:'Saya cenderung menunggu orang lain mengambil inisiatif terlebih dahulu.' },
+  { aspect:'leadership', text:'Saya cenderung menunggu orang lain mengambil inisiatif terlebih dahulu.' }, // Reverse
   { aspect:'leadership', text:'Saya dapat memotivasi dan mengarahkan orang lain untuk mencapai tujuan.' },
 
-  // --- Aspek Visual ---
+  // --- ASPEK VISUAL (4 Soal) ---
   { aspect: 'visual', text: 'Perhatikan pola gambar berikut. Jika pola dilanjutkan, gambar apa yang tepat untuk mengisi tanda tanya?', image: SVG_IMAGES.pattern1, options: [ { value: 5, label: 'Kotak Biru' }, { value: 1, label: 'Kotak Merah' }, { value: 3, label: 'Lingkaran Biru' }, { value: 2, label: 'Segitiga Merah' } ] },
   { aspect: 'visual', text: 'Gambar manakah yang merupakan hasil rotasi 90 derajat searah jarum jam dari bentuk di bawah ini?', image: SVG_IMAGES.kubus1, options: [ { value: 5, label: 'Bentuk A' }, { value: 4, label: 'Bentuk B' }, { value: 2, label: 'Bentuk C' }, { value: 1, label: 'Bentuk D' } ] },
   { aspect: 'visual', text: 'Lengkapi pola bentuk geometri berikut ini:', image: SVG_IMAGES.pattern2, options: [ { value: 1, label: 'Persegi' }, { value: 5, label: 'Lingkaran' }, { value: 2, label: 'Segitiga' }, { value: 3, label: 'Bintang' } ] },
   { aspect: 'visual', text: 'Warna apakah yang paling tepat untuk melengkapi pola kotak di atas?', image: SVG_IMAGES.pattern3, options: [ { value: 5, label: 'Kuning' }, { value: 1, label: 'Merah' }, { value: 2, label: 'Biru' }, { value: 4, label: 'Hijau' } ] },
 
-  // --- Aspek Numerik ---
+  // --- ASPEK NUMERIK (5 Soal) ---
   { aspect: 'numerik', text: 'Berapakah hasil dari 15 + 27 - 12?', options: [ { value: 3, label: '25' }, { value: 5, label: '30' }, { value: 2, label: '28' }, { value: 1, label: '32' } ] },
   { aspect: 'numerik', text: 'Lanjutkan deret angka berikut: 2, 4, 8, 16, ...', options: [ { value: 1, label: '20' }, { value: 5, label: '32' }, { value: 3, label: '24' }, { value: 2, label: '28' } ] },
   { aspect: 'numerik', text: 'Jika sebuah barang berharga Rp 150.000 dan mendapat diskon 20%, berapakah harga yang harus dibayar?', options: [ { value: 2, label: 'Rp 130.000' }, { value: 1, label: 'Rp 140.000' }, { value: 5, label: 'Rp 120.000' }, { value: 3, label: 'Rp 100.000' } ] },
-  { aspect: 'numerik', text: 'Sebuah pekerjaan dapat diselesaikan oleh 3 orang dalam waktu 6 hari. Jika dikerjakan oleh 2 orang, berapa hari waktu yang dibutuhkan?', options: [ { value: 3, label: '8 hari' }, { value: 5, label: '9 hari' }, { value: 2, label: '10 hari' }, { value: 1, label: '12 hari' } ] }
+  { aspect: 'numerik', text: 'Sebuah pekerjaan dapat diselesaikan oleh 3 orang dalam waktu 6 hari. Jika dikerjakan oleh 2 orang, berapa hari waktu yang dibutuhkan?', options: [ { value: 3, label: '8 hari' }, { value: 5, label: '9 hari' }, { value: 2, label: '10 hari' }, { value: 1, label: '12 hari' } ] },
+  { aspect: 'numerik', text: 'Berapakah hasil dari (8 x 4) + (15 : 3)?', options: [ { value: 5, label: '37' }, { value: 2, label: '35' }, { value: 3, label: '40' }, { value: 1, label: '42' } ] }
 ];
 
 const REVERSE_FLAGS = QUESTIONS.map(q => 
