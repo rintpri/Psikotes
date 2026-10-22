@@ -13,7 +13,6 @@
   header p { opacity: 0.85; font-size: 0.95rem; }
   .content { padding: 32px; }
   
-  /* Form & Buttons */
   .form-group { margin-bottom: 18px; }
   .form-group label { display: block; font-weight: 600; margin-bottom: 6px; font-size: .92rem; color: #1e3c72; }
   .form-group input { width: 100%; padding: 12px 14px; border: 2px solid #dde3ec; border-radius: 10px; font-size: 1rem; font-family: inherit; }
@@ -28,14 +27,19 @@
   .btn-sm { padding: 8px 14px; font-size: .85rem; }
   .hidden { display: none !important; }
 
-  /* Progress & Soal */
+  /* Header Tes & Timer */
+  .test-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 2px solid #eef1f6; padding-bottom: 15px; }
+  .aspect-title { font-size: 1.2rem; font-weight: 800; color: #1e3c72; }
+  .aspect-desc { font-size: .85rem; color: #666; margin-top: 4px; }
+  .timer-box { background: #fff3e0; border: 2px solid #f39c12; color: #d35400; padding: 10px 20px; border-radius: 10px; font-size: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 10px rgba(243,156,18,0.2); }
+  .timer-box.warning { background: #ffebee; border-color: #e74c3c; color: #c0392b; animation: pulse 1s infinite; }
+  @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
   .progress-info { display: flex; justify-content: space-between; font-size: .85rem; color: #666; margin-bottom: 6px; }
   .progress-bar { height: 10px; background: #e8ecf3; border-radius: 6px; overflow: hidden; margin-bottom: 24px; }
   .progress-fill { height: 100%; background: linear-gradient(90deg, #2a5298, #4a90e2); width: 0%; transition: width .35s ease; }
-  .q-meta { display: inline-block; background: #eef3fb; color: #1e3c72; padding: 4px 12px; border-radius: 20px; font-size: .78rem; font-weight: 600; margin-bottom: 14px; }
-  .q-text { font-size: 1.1rem; font-weight: 600; line-height: 1.5; margin-bottom: 20px; color: #222; }
   
-  /* Gambar SVG */
+  .q-text { font-size: 1.1rem; font-weight: 600; line-height: 1.5; margin-bottom: 20px; color: #222; }
   .q-image { text-align: center; margin-bottom: 20px; padding: 15px; background: #f8faff; border-radius: 10px; border: 1px dashed #c0d0e8; }
   .q-image svg { max-width: 100%; height: auto; max-height: 180px; }
 
@@ -48,16 +52,12 @@
   .option.selected .radio::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #2a5298; }
   .nav-buttons { display: flex; justify-content: space-between; margin-top: 28px; gap: 12px; }
 
-  /* Tabs & Login */
   .tab-bar { display: flex; gap: 8px; padding: 0 32px; background: #f4f8ff; border-bottom: 1px solid #e3e9f2; }
   .tab-btn { padding: 14px 20px; border: none; background: none; font-size: .92rem; font-weight: 600; color: #7a879c; cursor: pointer; border-bottom: 3px solid transparent; }
   .tab-btn.active { color: #1e3c72; border-bottom-color: #2a5298; }
   .info-note { background: #fff8e6; border-left: 4px solid #f39c12; padding: 12px 16px; border-radius: 8px; font-size: .85rem; margin-bottom: 20px; color: #7a5c00; }
 
-  /* Iframe Container */
   .iframe-container { width: 100%; height: 600px; border: 1px solid #e3e9f2; border-radius: 12px; overflow: hidden; background: #fff; }
-  
-  /* Halaman Sukses Kandidat */
   .success-box { text-align: center; padding: 40px 20px; }
   .success-box .icon { font-size: 4rem; margin-bottom: 16px; }
   .success-box h2 { color: #1e3c72; margin-bottom: 12px; }
@@ -69,7 +69,7 @@
   <header>
     <div>
       <h1>🧠 Psikotes Kandidat Karyawan</h1>
-      <p>Penilaian 9 aspek psikologis</p>
+      <p>Penilaian 9 aspek psikologis dengan sistem timer</p>
     </div>
     <button id="btnLogout" class="btn btn-danger btn-sm hidden" onclick="logoutAdmin()">Logout Admin</button>
   </header>
@@ -84,7 +84,7 @@
     <div id="tab-test">
       
       <div id="identitySection">
-        <div class="info-note">ℹ️ Isi data diri terlebih dahulu. Tes terdiri dari <b id="totalQInfo"></b> pernyataan & soal (±10 menit).</div>
+        <div class="info-note">ℹ️ Tes ini terdiri dari 9 tahap (aspek). Setiap tahap memiliki batas waktu. Jika waktu habis, soal akan otomatis di-skip ke tahap berikutnya.</div>
         <div class="form-group"><label>Nama Lengkap *</label><input type="text" id="inpName" placeholder="cth: Budi Santoso"></div>
         <div class="form-group"><label>Posisi yang Dilamar *</label><input type="text" id="inpPosition" placeholder="cth: Staff Administrasi"></div>
         <div class="form-group"><label>Email / No. HP</label><input type="text" id="inpContact" placeholder="cth: budi@email.com"></div>
@@ -92,12 +92,23 @@
       </div>
 
       <div id="testSection" class="hidden">
+        <div class="test-header">
+          <div>
+            <div class="aspect-title" id="lblAspectTitle">Aspek 1</div>
+            <div class="aspect-desc" id="lblAspectDesc">Deskripsi</div>
+          </div>
+          <div class="timer-box" id="timerBox">
+            <span>⏱️</span> <span id="timerDisplay">02:30</span>
+          </div>
+        </div>
+
         <div class="progress-info"><span id="progressLabel">Soal 1</span><span id="progressPercent">0%</span></div>
         <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-        <div class="q-meta" id="qMeta"></div>
+        
         <div class="q-text" id="qText"></div>
         <div id="qImageContainer"></div>
         <div class="options" id="qOptions"></div>
+        
         <div class="nav-buttons">
           <button class="btn btn-secondary" id="btnPrev" onclick="prevQuestion()">← Sebelumnya</button>
           <button class="btn btn-primary" id="btnNext" onclick="nextQuestion()">Selanjutnya →</button>
@@ -156,20 +167,25 @@ const GAS_URL = 'https://script.google.com/macros/s/AKfycbzvDnTdsOLSZz1FY1iQtyP1
 const HRD_TOKEN = 'rahasia123'; 
 const HRD_PIN = '123456'; 
 
+// Waktu per aspek dalam DETIK (150 detik = 2.5 menit x 9 aspek = 22.5 Menit)
+const TIME_PER_ASPECT = 150; 
+
 /* ============================================================
-   DATA ASPEK & SOAL (9 ASPEK - 41 SOAL)
+   DATA ASPEK, DESKRIPSI, & SOAL
    ============================================================ */
 const ASPECTS = {
-  stress:     { name: 'Toleransi terhadap Stres' },
-  analisa:    { name: 'Daya Analisa & Sintesa' },
-  fleksibel:  { name: 'Fleksibilitas Berpikir' },
-  motivasi:   { name: 'Motivasi Berprestasi' },
-  kerjasama:  { name: 'Kerjasama' },
-  emosi:      { name: 'Stabilitas Emosi' },
-  leadership: { name: 'Kepemimpinan' },
-  visual:     { name: 'Penalaran Visual (Gambar)' },
-  numerik:    { name: 'Kemampuan Numerik' }
+  stress:     { name: 'Toleransi terhadap Stres', desc: 'Kemampuan tetap tenang & produktif di bawah tekanan' },
+  analisa:    { name: 'Daya Analisa & Sintesa',   desc: 'Kemampuan mengurai masalah dan menyusun solusi' },
+  fleksibel:  { name: 'Fleksibilitas Berpikir',   desc: 'Kemampuan beradaptasi & melihat dari banyak sudut' },
+  motivasi:   { name: 'Motivasi Berprestasi',     desc: 'Dorongan untuk unggul, berkembang & mencapai target' },
+  kerjasama:  { name: 'Kerjasama',                desc: 'Kemampuan berkolaborasi & membangun relasi kerja' },
+  emosi:      { name: 'Stabilitas Emosi',         desc: 'Kestabilan suasana hati & kendali diri' },
+  leadership: { name: 'Kepemimpinan',             desc: 'Kemampuan memimpin, mengambil keputusan & memengaruhi' },
+  visual:     { name: 'Penalaran Visual',         desc: 'Kemampuan memecahkan pola dan bentuk spasial' },
+  numerik:    { name: 'Kemampuan Numerik',        desc: 'Ketepatan dan kecepatan dalam berhitung dasar' }
 };
+
+const ASPECT_ORDER = ['stress', 'analisa', 'fleksibel', 'motivasi', 'kerjasama', 'emosi', 'leadership', 'visual', 'numerik'];
 
 const LIKERT = [
   { value: 1, label: 'Sangat Tidak Setuju' }, { value: 2, label: 'Tidak Setuju' },
@@ -185,55 +201,47 @@ const SVG_IMAGES = {
 };
 
 const QUESTIONS = [
-  // --- ASPEK STRES (4 Soal) ---
+  // --- STRES ---
   { aspect:'stress', text:'Saya tetap tenang dan fokus ketika menghadapi tenggat waktu yang mendesak.' },
   { aspect:'stress', text:'Tekanan pekerjaan yang tinggi justru membuat saya semakin termotivasi.' },
-  { aspect:'stress', text:'Saya mudah panik ketika terjadi masalah yang tidak terduga dalam pekerjaan.' }, // Reverse
+  { aspect:'stress', text:'Saya mudah panik ketika terjadi masalah yang tidak terduga dalam pekerjaan.' },
   { aspect:'stress', text:'Saya mampu mengendalikan emosi saat menghadapi rekan kerja yang sulit.' },
-
-  // --- ASPEK ANALISA (4 Soal) ---
+  // --- ANALISA ---
   { aspect:'analisa', text:'Saya terbiasa memecah masalah kompleks menjadi bagian yang lebih sederhana.' },
   { aspect:'analisa', text:'Saya dapat dengan cepat menemukan akar penyebab suatu permasalahan.' },
-  { aspect:'analisa', text:'Saya sulit menghubungkan informasi dari berbagai sumber untuk menarik kesimpulan.' }, // Reverse
+  { aspect:'analisa', text:'Saya sulit menghubungkan informasi dari berbagai sumber untuk menarik kesimpulan.' },
   { aspect:'analisa', text:'Saya menyukai pekerjaan yang menuntut penalaran logis dan data.' },
-
-  // --- ASPEK FLEKSIBEL (4 Soal) ---
+  // --- FLEKSIBEL ---
   { aspect:'fleksibel', text:'Saya mudah menyesuaikan diri ketika cara kerja berubah secara mendadak.' },
   { aspect:'fleksibel', text:'Saya terbuka terhadap ide atau sudut pandang yang berbeda dari keyakinan saya.' },
-  { aspect:'fleksibel', text:'Saya cenderung bertahan pada satu cara kerja meskipun ada cara yang lebih efektif.' }, // Reverse
+  { aspect:'fleksibel', text:'Saya cenderung bertahan pada satu cara kerja meskipun ada cara yang lebih efektif.' },
   { aspect:'fleksibel', text:'Saya senang mencoba pendekatan baru ketika metode lama tidak lagi berhasil.' },
-
-  // --- ASPEK MOTIVASI (4 Soal) ---
+  // --- MOTIVASI ---
   { aspect:'motivasi', text:'Saya menetapkan target kerja yang tinggi untuk diri saya sendiri.' },
   { aspect:'motivasi', text:'Saya merasa puas ketika berhasil mengungguli standar yang ditetapkan.' },
-  { aspect:'motivasi', text:'Saya cepat merasa puas dengan hasil kerja yang sekadar "cukup baik".' }, // Reverse
+  { aspect:'motivasi', text:'Saya cepat merasa puas dengan hasil kerja yang sekadar "cukup baik".' },
   { aspect:'motivasi', text:'Saya aktif mencari peluang untuk mengembangkan keterampilan baru.' },
-
-  // --- ASPEK KERJASAMA (4 Soal) ---
+  // --- KERJASAMA ---
   { aspect:'kerjasama', text:'Saya lebih suka bekerja dalam tim dibandingkan bekerja sendiri.' },
   { aspect:'kerjasama', text:'Saya bersedia membantu rekan kerja yang sedang kesulitan tanpa diminta.' },
-  { aspect:'kerjasama', text:'Saya menganggap pendapat rekan tim kurang penting dibandingkan pendapat saya.' }, // Reverse
+  { aspect:'kerjasama', text:'Saya menganggap pendapat rekan tim kurang penting dibandingkan pendapat saya.' },
   { aspect:'kerjasama', text:'Saya mampu berkompromi demi tercapainya tujuan bersama.' },
-
-  // --- ASPEK EMOSI (4 Soal) ---
+  // --- EMOSI ---
   { aspect:'emosi', text:'Suasana hati saya cenderung stabil dari hari ke hari.' },
-  { aspect:'emosi', text:'Saya mudah tersinggung ketika menerima kritik dari orang lain.' }, // Reverse
+  { aspect:'emosi', text:'Saya mudah tersinggung ketika menerima kritik dari orang lain.' },
   { aspect:'emosi', text:'Saya dapat menahan diri untuk tidak bereaksi berlebihan saat marah.' },
-  { aspect:'emosi', text:'Saya sering merasa cemas berlebihan tanpa alasan yang jelas.' }, // Reverse
-
-  // --- ASPEK KEPEMIMPINAN (4 Soal) ---
+  { aspect:'emosi', text:'Saya sering merasa cemas berlebihan tanpa alasan yang jelas.' },
+  // --- KEPEMIMPINAN ---
   { aspect:'leadership', text:'Saya nyaman mengambil tanggung jawab dan memimpin kelompok.' },
   { aspect:'leadership', text:'Saya mampu mengambil keputusan tegas meskipun dalam situasi tidak pasti.' },
-  { aspect:'leadership', text:'Saya cenderung menunggu orang lain mengambil inisiatif terlebih dahulu.' }, // Reverse
+  { aspect:'leadership', text:'Saya cenderung menunggu orang lain mengambil inisiatif terlebih dahulu.' },
   { aspect:'leadership', text:'Saya dapat memotivasi dan mengarahkan orang lain untuk mencapai tujuan.' },
-
-  // --- ASPEK VISUAL (4 Soal) ---
+  // --- VISUAL ---
   { aspect: 'visual', text: 'Perhatikan pola gambar berikut. Jika pola dilanjutkan, gambar apa yang tepat untuk mengisi tanda tanya?', image: SVG_IMAGES.pattern1, options: [ { value: 5, label: 'Kotak Biru' }, { value: 1, label: 'Kotak Merah' }, { value: 3, label: 'Lingkaran Biru' }, { value: 2, label: 'Segitiga Merah' } ] },
   { aspect: 'visual', text: 'Gambar manakah yang merupakan hasil rotasi 90 derajat searah jarum jam dari bentuk di bawah ini?', image: SVG_IMAGES.kubus1, options: [ { value: 5, label: 'Bentuk A' }, { value: 4, label: 'Bentuk B' }, { value: 2, label: 'Bentuk C' }, { value: 1, label: 'Bentuk D' } ] },
   { aspect: 'visual', text: 'Lengkapi pola bentuk geometri berikut ini:', image: SVG_IMAGES.pattern2, options: [ { value: 1, label: 'Persegi' }, { value: 5, label: 'Lingkaran' }, { value: 2, label: 'Segitiga' }, { value: 3, label: 'Bintang' } ] },
   { aspect: 'visual', text: 'Warna apakah yang paling tepat untuk melengkapi pola kotak di atas?', image: SVG_IMAGES.pattern3, options: [ { value: 5, label: 'Kuning' }, { value: 1, label: 'Merah' }, { value: 2, label: 'Biru' }, { value: 4, label: 'Hijau' } ] },
-
-  // --- ASPEK NUMERIK (5 Soal) ---
+  // --- NUMERIK ---
   { aspect: 'numerik', text: 'Berapakah hasil dari 15 + 27 - 12?', options: [ { value: 3, label: '25' }, { value: 5, label: '30' }, { value: 2, label: '28' }, { value: 1, label: '32' } ] },
   { aspect: 'numerik', text: 'Lanjutkan deret angka berikut: 2, 4, 8, 16, ...', options: [ { value: 1, label: '20' }, { value: 5, label: '32' }, { value: 3, label: '24' }, { value: 2, label: '28' } ] },
   { aspect: 'numerik', text: 'Jika sebuah barang berharga Rp 150.000 dan mendapat diskon 20%, berapakah harga yang harus dibayar?', options: [ { value: 2, label: 'Rp 130.000' }, { value: 1, label: 'Rp 140.000' }, { value: 5, label: 'Rp 120.000' }, { value: 3, label: 'Rp 100.000' } ] },
@@ -247,7 +255,54 @@ const REVERSE_FLAGS = QUESTIONS.map(q =>
   q.text.includes('cemas berlebihan') || q.text.includes('menunggu orang lain')
 );
 
-let state = { candidate: null, answers: [], current: 0, startedAt: 0 };
+/* ============================================================
+   STATE & LOGIKA TIMER
+   ============================================================ */
+let state = { 
+  candidate: null, 
+  answers: [], 
+  currentAspectIndex: 0,
+  currentQuestionInAspect: 0,
+  startedAt: 0 
+};
+
+let timerInterval = null;
+let timeLeft = 0;
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = TIME_PER_ASPECT;
+  updateTimerDisplay();
+  
+  const timerBox = document.getElementById('timerBox');
+  timerBox.classList.remove('warning');
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+
+    if (timeLeft <= 15) {
+      timerBox.classList.add('warning');
+    }
+
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      // Waktu habis, langsung pindah ke aspek berikutnya
+      alert(`⏰ Waktu untuk aspek ini telah habis! Sistem akan melanjutkan ke aspek berikutnya.`);
+      nextAspect(true); // true = forced skip
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+  const s = (timeLeft % 60).toString().padStart(2, '0');
+  document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
 
 /* ================== NAVIGASI TAB ================== */
 function switchTab(tab) {
@@ -292,8 +347,6 @@ function logoutAdmin() {
 }
 
 /* ================== TES KANDIDAT ================== */
-document.getElementById('totalQInfo').textContent = QUESTIONS.length;
-
 function startTest() {
   const name = document.getElementById('inpName').value.trim();
   const position = document.getElementById('inpPosition').value.trim();
@@ -301,18 +354,53 @@ function startTest() {
 
   state.candidate = { name, position, contact: document.getElementById('inpContact').value.trim(), id: 'C' + Date.now() };
   state.answers = new Array(QUESTIONS.length).fill(null);
-  state.current = 0;
+  state.currentAspectIndex = 0;
+  state.currentQuestionInAspect = 0;
   state.startedAt = Date.now();
 
   document.getElementById('identitySection').classList.add('hidden');
   document.getElementById('testSection').classList.remove('hidden');
   document.getElementById('successSection').classList.add('hidden');
+  
+  renderAspect();
+}
+
+function renderAspect() {
+  const aspectKey = ASPECT_ORDER[state.currentAspectIndex];
+  const aspectData = ASPECTS[aspectKey];
+  
+  document.getElementById('lblAspectTitle').textContent = `Aspek ${state.currentAspectIndex + 1} dari 9: ${aspectData.name}`;
+  document.getElementById('lblAspectDesc').textContent = aspectData.desc;
+
+  // Cari pertanyaan pertama untuk aspek ini
+  state.currentQuestionInAspect = 0;
   renderQuestion();
+
+  // Mulai timer untuk aspek ini
+  startTimer();
+}
+
+function getCurrentQuestionIndex() {
+  const aspectKey = ASPECT_ORDER[state.currentAspectIndex];
+  const questionsInAspect = QUESTIONS.map((q, i) => ({...q, originalIndex: i})).filter(q => q.aspect === aspectKey);
+  
+  if (state.currentQuestionInAspect >= questionsInAspect.length) return -1;
+  return questionsInAspect[state.currentQuestionInAspect].originalIndex;
 }
 
 function renderQuestion() {
-  const i = state.current, q = QUESTIONS[i];
-  document.getElementById('qMeta').textContent = 'Aspek: ' + ASPECTS[q.aspect].name;
+  const aspectKey = ASPECT_ORDER[state.currentAspectIndex];
+  const questionsInAspect = QUESTIONS.map((q, i) => ({...q, originalIndex: i})).filter(q => q.aspect === aspectKey);
+  
+  if (state.currentQuestionInAspect >= questionsInAspect.length) {
+    // Jika sudah di ujung aspek tapi user klik Selanjutnya, pindah aspek
+    nextAspect(false);
+    return;
+  }
+
+  const idx = questionsInAspect[state.currentQuestionInAspect].originalIndex;
+  const q = QUESTIONS[idx];
+
   document.getElementById('qText').textContent = q.text;
 
   const imgContainer = document.getElementById('qImageContainer');
@@ -324,54 +412,105 @@ function renderQuestion() {
 
   const opts = document.getElementById('qOptions');
   opts.innerHTML = '';
-  
   const currentOptions = q.options ? q.options : LIKERT;
 
   currentOptions.forEach(l => {
     const div = document.createElement('label');
-    div.className = 'option' + (state.answers[i] === l.value ? ' selected' : '');
+    div.className = 'option' + (state.answers[idx] === l.value ? ' selected' : '');
     div.innerHTML = `<span class="radio"></span><span>${l.label}</span>`;
-    div.onclick = () => { state.answers[i] = l.value; renderQuestion(); };
+    div.onclick = () => { state.answers[idx] = l.value; renderQuestion(); };
     opts.appendChild(div);
   });
 
-  const answered = state.answers.filter(a => a !== null).length;
-  const pct = Math.round((answered / QUESTIONS.length) * 100);
-  document.getElementById('progressLabel').textContent = `Soal ${i+1} dari ${QUESTIONS.length} — terjawab ${answered}`;
+  // Update Progress
+  const totalInAspect = questionsInAspect.length;
+  const currentNo = state.currentQuestionInAspect + 1;
+  const pct = Math.round((currentNo / totalInAspect) * 100);
+  
+  document.getElementById('progressLabel').textContent = `Soal ${currentNo} dari ${totalInAspect}`;
   document.getElementById('progressPercent').textContent = pct + '%';
   document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('btnPrev').disabled = (i === 0);
+  
+  document.getElementById('btnPrev').disabled = (state.currentQuestionInAspect === 0);
   
   const btnNext = document.getElementById('btnNext');
-  const isLast = (i === QUESTIONS.length - 1);
-  btnNext.textContent = isLast ? 'Selesaikan Tes ✓' : 'Selanjutnya →';
-  btnNext.className = isLast ? 'btn btn-success' : 'btn btn-primary';
+  const isLastInAspect = (state.currentQuestionInAspect === totalInAspect - 1);
+  const isLastAspect = (state.currentAspectIndex === ASPECT_ORDER.length - 1);
+  
+  if (isLastInAspect) {
+    btnNext.textContent = isLastAspect ? 'Selesaikan Tes ✓' : 'Aspek Selanjutnya →';
+    btnNext.className = isLastAspect ? 'btn btn-success' : 'btn btn-primary';
+  } else {
+    btnNext.textContent = 'Selanjutnya →';
+    btnNext.className = 'btn btn-primary';
+  }
 }
 
 function nextQuestion() {
-  if (state.answers[state.current] === null) { alert('Silakan pilih jawaban terlebih dahulu.'); return; }
-  if (state.current === QUESTIONS.length - 1) finishTest();
-  else { state.current++; renderQuestion(); }
+  const idx = getCurrentQuestionIndex();
+  if (state.answers[idx] === null) { 
+    if(!confirm('Anda belum memilih jawaban. Tetap lanjutkan?')) return; 
+  }
+
+  const aspectKey = ASPECT_ORDER[state.currentAspectIndex];
+  const questionsInAspect = QUESTIONS.filter(q => q.aspect === aspectKey);
+
+  if (state.currentQuestionInAspect < questionsInAspect.length - 1) {
+    state.currentQuestionInAspect++;
+    renderQuestion();
+  } else {
+    nextAspect(false);
+  }
 }
-function prevQuestion() { if (state.current > 0) { state.current--; renderQuestion(); } }
+
+function prevQuestion() {
+  if (state.currentQuestionInAspect > 0) {
+    state.currentQuestionInAspect--;
+    renderQuestion();
+  }
+}
+
+function nextAspect(isForced = false) {
+  stopTimer();
+  state.currentAspectIndex++;
+  
+  if (state.currentAspectIndex >= ASPECT_ORDER.length) {
+    finishTest();
+  } else {
+    renderAspect();
+  }
+}
 
 /* ================== HITUNG & SUBMIT ================== */
 function finishTest() {
-  if (state.answers.filter(a => a === null).length > 0 && !confirm('Masih ada soal belum dijawab. Yakin selesai?')) return;
-
-  const raw = {}; Object.keys(ASPECTS).forEach(k => raw[k] = { total: 0, count: 0 });
+  stopTimer();
+  
+  const raw = {}; 
+  Object.keys(ASPECTS).forEach(k => raw[k] = { total: 0, count: 0 });
+  
   QUESTIONS.forEach((q, idx) => {
-    const ans = state.answers[idx] ?? 3;
-    const val = REVERSE_FLAGS[idx] ? (6 - ans) : ans;
-    raw[q.aspect].total += val; raw[q.aspect].count++;
+    const ans = state.answers[idx];
+    if (ans !== null) {
+      const val = REVERSE_FLAGS[idx] ? (6 - ans) : ans;
+      raw[q.aspect].total += val; 
+      raw[q.aspect].count++;
+    }
   });
   
-  const aspectScores = {}; let totalOverall = 0;
+  const aspectScores = {}; let totalOverall = 0; let validAspects = 0;
+  
   Object.keys(raw).forEach(k => {
-    const score = Math.round(((raw[k].total / raw[k].count) - 1) / 4 * 100);
-    aspectScores[k] = score; totalOverall += score;
+    if (raw[k].count > 0) {
+      const score = Math.round(((raw[k].total / raw[k].count) - 1) / 4 * 100);
+      aspectScores[k] = score; 
+      totalOverall += score;
+      validAspects++;
+    } else {
+      aspectScores[k] = 0; // Jika waktu habis total di aspek ini
+    }
   });
-  const overall = Math.round(totalOverall / Object.keys(ASPECTS).length);
+  
+  const overall = validAspects > 0 ? Math.round(totalOverall / validAspects) : 0;
   
   let category = 'Rendah', verdict = 'BELUM DIREKOMENDASIKAN';
   if (overall >= 75) { category = 'Tinggi'; verdict = 'SANGAT DIREKOMENDASIKAN'; }
@@ -396,7 +535,7 @@ function resetForNewCandidate() {
   ['inpName','inpPosition','inpContact'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('identitySection').classList.remove('hidden');
   document.getElementById('successSection').classList.add('hidden');
-  state = { candidate: null, answers: [], current: 0, startedAt: 0 };
+  state = { candidate: null, answers: [], currentAspectIndex: 0, currentQuestionInAspect: 0, startedAt: 0 };
   switchTab('test');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
